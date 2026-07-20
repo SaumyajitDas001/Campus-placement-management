@@ -5,6 +5,24 @@ It is designed for large placement drives with eligibility filtering, interview
 slot scheduling, conflict prevention, transactions, triggers, views, and
 algorithmic allocation logic.
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard top](docs/screenshots/dashboard-top.png)
+
+### Tables and Scheduling
+
+![Dashboard tables](docs/screenshots/dashboard-tables.png)
+
+### Student Academic Profile
+
+![Student profile modal](docs/screenshots/student-profile.png)
+
+### Semester and Subject Marks
+
+![Student marks modal](docs/screenshots/student-marks.png)
+
 ## Features
 
 - 10,000+ student-ready normalized schema
