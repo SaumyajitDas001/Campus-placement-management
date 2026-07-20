@@ -1,0 +1,121 @@
+Campus Placement Management System - Windows CMD Commands
+========================================================
+
+Use these commands in Command Prompt, not PowerShell.
+
+
+1. Go to project folder
+-----------------------
+
+cd /d C:\Onedrive\Documents\Campus
+
+
+2. Set PostgreSQL password for this CMD session
+----------------------------------------------
+
+set PGPASSWORD=Saumyajit@2004
+
+
+Recommended first-time setup
+----------------------------
+
+For first-time setup, run this first:
+
+setup_database_cmd.bat
+
+It creates/loads:
+
+user: postgres
+password: Saumyajit@2004
+database: campus_placement
+port: 5433
+
+Then it loads sql\01_schema.sql and sql\02_seed.sql.
+
+
+3. Create database
+------------------
+
+createdb -h localhost -p 5433 -U postgres campus_placement
+
+If it says the database already exists, continue.
+
+If the database already exists, continue to the next step.
+
+
+4. Load PostgreSQL schema
+-------------------------
+
+psql -h localhost -p 5433 -U postgres -d campus_placement -f sql\01_schema.sql
+
+
+5. Load seed data
+-----------------
+
+psql -h localhost -p 5433 -U postgres -d campus_placement -f sql\02_seed.sql
+
+
+6. Optional demo query script
+-----------------------------
+
+psql -h localhost -p 5433 -U postgres -d campus_placement -f sql\03_demo.sql
+
+
+7. Create Python virtual environment
+------------------------------------
+
+python -m venv .venv
+
+
+8. Activate virtual environment
+-------------------------------
+
+.venv\Scripts\activate.bat
+
+
+9. Install Python packages
+--------------------------
+
+python -m pip install -r requirements.txt
+
+
+10. Set Flask database connection
+---------------------------------
+
+set DATABASE_URL=postgresql://postgres:Saumyajit%%402004@localhost:5433/campus_placement
+
+
+11. Run Flask app
+-----------------
+
+flask --app app run
+
+
+12. Open frontend
+-----------------
+
+http://localhost:5000
+
+
+One-command runner
+==================
+
+You can also run:
+
+run_local_cmd.bat
+
+If the database is not created yet, run this before run_local_cmd.bat:
+
+setup_database_cmd.bat
+
+
+Notes
+=====
+
+- PostgreSQL must be installed and running.
+- The PostgreSQL bin folder must be in PATH so that CMD can find psql and createdb.
+- This setup assumes:
+  username: postgres
+  password: Saumyajit@2004
+  database: campus_placement
+  port: 5433

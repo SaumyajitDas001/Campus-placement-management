@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="app-window">
+    <div class="hero-banner">
+      <img src="/static/images/placement-header.png" alt="IEM UEM campus banner">
+    </div>
+    <div class="title-row">
+      <span id="clockText">--:--:--</span>
+      <h1>CAMPUS PLACEMENT MANAGEMENT SYSTEM SOFTWARE</h1>
+    </div>
+  </header>
+
+  <main>
+    <section class="nav-buttons">
+      <button type="button" data-scroll-target="eligiblePanel">Student Details</button>
+      <button type="button" data-scroll-target="companyPanel">Companies</button>
+      <button type="button" data-scroll-target="schedulePanel">Interview Schedule</button>
+      <button type="button" data-scroll-target="matchingPanel">Matching Edges</button>
+      <button id="openPostgresBtn" type="button">Open PostgreSQL</button>
+    </section>
+
+    <section class="metrics" id="summaryCards"></section>
+
+    <section class="panel controls">
+      <div>
+        <label for="companySelect">Company</label>
+        <select id="companySelect"></select>
+      </div>
+      <div>
+        <label for="studentSearch">Student Search</label>
+        <input id="studentSearch" type="search" placeholder="Roll no, name, department">
+      </div>
+      <button id="runGreedyBtn" type="button">Run Greedy Scheduling</button>
+      <button id="refreshBtn" type="button">Refresh</button>
+      <p id="actionMessage" class="message"></p>
+    </section>
+
+    <section class="grid">
+      <article class="panel" id="companyPanel">
+        <h2>Company Dashboard</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Package</th>
+                <th>Openings</th>
+                <th>Applications</th>
+                <th>Scheduled</th>
+                <th>Offers</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardRows"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel" id="eligiblePanel">
+        <h2>Student Details</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Dept</th>
+                <th>CGPA</th>
+                <th>Backlogs</th>
+                <th>Year</th>
+                <th>Status</th>
+                <th>Applications</th>
+                <th>Interviews</th>
+                <th>Avg SGPA</th>
+              </tr>
+            </thead>
+            <tbody id="studentRows"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel" id="schedulePanel">
+        <h2>Interview Schedule</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Company</th>
+                <th>Starts</th>
+                <th>Ends</th>
+                <th>Venue</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleRows"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel" id="matchingPanel">
+        <h2>Matching Candidates</h2>
+        <p class="panel-note">Algorithm view: eligible student-slot options used by bipartite matching.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Company</th>
+                <th>Slot</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="edgeRows"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="studentModal" hidden>
+    <section class="student-modal">
+      <header>
+        <div>
+          <h2 id="modalStudentName">Student Marks</h2>
+          <p id="modalStudentMeta"></p>
+        </div>
+        <button id="closeStudentModal" type="button">Close</button>
+      </header>
+      <div class="profile-strip" id="modalProfileStrip"></div>
+      <h3>Semester Summary</h3>
+      <div class="table-wrap modal-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Semester</th>
+              <th>Average Marks</th>
+              <th>SGPA</th>
+              <th>Backlogs</th>
+            </tr>
+          </thead>
+          <tbody id="semesterRows"></tbody>
+        </table>
+      </div>
+      <h3>Subject Marks</h3>
+      <div class="table-wrap modal-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Sem</th>
+              <th>Code</th>
+              <th>Subject</th>
+              <th>Credits</th>
+              <th>Internal</th>
+              <th>External</th>
+              <th>Total</th>
+              <th>Grade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="markRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

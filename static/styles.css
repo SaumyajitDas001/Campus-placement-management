@@ -1,0 +1,408 @@
+:root {
+  color-scheme: light;
+  --bg: #02082f;
+  --panel: #ffffff;
+  --text: #111827;
+  --muted: #344a6a;
+  --line: #bfc7d5;
+  --brand: #d60000;
+  --brand-dark: #ad0000;
+  --ok: #0f7b62;
+  --navy: #02082f;
+  --shadow: 0 10px 24px rgba(14, 23, 48, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    linear-gradient(90deg, rgba(0, 35, 130, 0.75), rgba(2, 8, 47, 0.96)),
+    url("/static/images/placement-header.png") center / cover fixed;
+  color: var(--text);
+}
+
+.app-window {
+  background: white;
+  border-top: 4px solid #e00000;
+  overflow: hidden;
+}
+
+.hero-banner {
+  width: 100%;
+  height: 175px;
+  overflow: hidden;
+  background: white;
+}
+
+.hero-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+
+.title-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  height: 54px;
+  background: white;
+  border-top: 2px solid #07183f;
+  overflow: hidden;
+}
+
+#clockText {
+  color: #003cff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 22px;
+  font-weight: 700;
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  color: red;
+  font-family: "Times New Roman", Times, serif;
+  font-size: clamp(26px, 3vw, 50px);
+  line-height: 1;
+  text-align: center;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #0b1634;
+}
+
+main {
+  width: min(1600px, calc(100% - 36px));
+  margin: 0 auto 44px;
+  padding-top: 28px;
+}
+
+.nav-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.nav-buttons button {
+  min-height: 50px;
+  border-radius: 6px 6px 0 0;
+  background: #db261d;
+  border-color: #db261d;
+  padding: 0 20px;
+  font-size: 20px;
+}
+
+.nav-buttons button:hover {
+  background: #b91f18;
+}
+
+button,
+select,
+input {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  padding: 0 12px;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+  font-weight: 700;
+}
+
+button:hover {
+  background: var(--brand-dark);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metric {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 3px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 30px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 2px solid #cfd6e2;
+  border-radius: 3px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.panel-note {
+  margin: -8px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+#matchingPanel {
+  opacity: 0.92;
+}
+
+#matchingPanel .table-wrap {
+  max-height: 260px;
+}
+
+#matchingPanel th,
+#matchingPanel td {
+  font-size: 13px;
+  padding: 8px;
+}
+
+.controls {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+  border-top: 5px solid #d90000;
+}
+
+.controls label {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.controls select {
+  width: 280px;
+}
+
+.controls input {
+  width: 260px;
+}
+
+.message {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 420px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: #e8edf4;
+  color: #10203e;
+  z-index: 1;
+}
+
+td.numeric {
+  text-align: right;
+}
+
+tr.clickable {
+  cursor: pointer;
+}
+
+tr.clickable:hover {
+  background: #fff4d6;
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.68);
+  padding: 24px;
+}
+
+.modal-backdrop[hidden] {
+  display: none !important;
+}
+
+.student-modal {
+  width: min(1180px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: white;
+  border: 3px solid #10205a;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  padding: 18px;
+}
+
+.student-modal header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 2px solid #d8deea;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.student-modal h3 {
+  margin: 18px 0 10px;
+  color: #0b1634;
+}
+
+.student-modal p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.profile-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.profile-pill {
+  border: 1px solid var(--line);
+  background: #f4f7fb;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.profile-pill strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #0b1634;
+}
+
+.modal-table {
+  max-height: 260px;
+}
+
+.modal-table table {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.modal-table th,
+.modal-table td {
+  text-align: center;
+}
+
+.modal-table td:nth-child(3),
+.modal-table th:nth-child(3) {
+  text-align: left;
+}
+
+.modal-table:first-of-type td:nth-child(3),
+.modal-table:first-of-type th:nth-child(3) {
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .title-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+    height: auto;
+    border-bottom-width: 16px;
+  }
+
+  h1 {
+    white-space: normal;
+    font-size: 30px;
+  }
+
+  #clockText {
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .hero-banner {
+    height: 120px;
+  }
+
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metrics,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls select {
+    width: 100%;
+  }
+
+  .controls input {
+    width: 100%;
+  }
+
+  .profile-strip {
+    grid-template-columns: 1fr;
+  }
+}

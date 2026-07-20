@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: campus-placement-postgres
+    environment:
+      POSTGRES_DB: campus_placement
+      POSTGRES_USER: campus_admin
+      POSTGRES_PASSWORD: campus_admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - campus_pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: campus-placement-web
+    environment:
+      DATABASE_URL: postgresql://campus_admin:campus_admin@postgres:5432/campus_placement
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+
+volumes:
+  campus_pgdata:
