@@ -1,0 +1,856 @@
+Campus Placement Management System - PostgreSQL Query Reference
+===============================================================
+
+Database used in this project:
+
+Host: localhost
+Port: 5433
+Database: campus_placement
+User: postgres
+
+
+1. Connect To PostgreSQL
+------------------------
+
+psql -h localhost -p 5433 -U postgres -d campus_placement
+
+
+2. Create And Load Database
+---------------------------
+
+CREATE DATABASE campus_placement;
+
+\c campus_placement
+
+\i sql/01_schema.sql
+\i sql/02_seed.sql
+\i sql/03_demo.sql
+
+
+3. Basic Database Inspection
+----------------------------
+
+SELECT current_database();
+
+SELECT current_user;
+
+SELECT version();
+
+\dt
+
+\dv
+
+\df
+
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
+
+SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_name, ordinal_position;
+
+
+4. Main Tables
+--------------
+
+SELECT * FROM departments;
+
+SELECT * FROM skills;
+
+SELECT * FROM students LIMIT 20;
+
+SELECT * FROM subjects LIMIT 20;
+
+SELECT * FROM student_semester_marks LIMIT 20;
+
+SELECT * FROM student_skills LIMIT 20;
+
+SELECT * FROM companies;
+
+SELECT * FROM company_departments LIMIT 20;
+
+SELECT * FROM company_required_skills LIMIT 20;
+
+SELECT * FROM applications LIMIT 20;
+
+SELECT * FROM interview_slots;
+
+SELECT * FROM interview_schedules LIMIT 20;
+
+SELECT * FROM offers LIMIT 20;
+
+
+5. Count Queries
+----------------
+
+SELECT COUNT(*) AS total_students FROM students;
+
+SELECT COUNT(*) AS total_departments FROM departments;
+
+SELECT COUNT(*) AS total_skills FROM skills;
+
+SELECT COUNT(*) AS total_subjects FROM subjects;
+
+SELECT COUNT(*) AS total_marks FROM student_semester_marks;
+
+SELECT COUNT(*) AS total_companies FROM companies;
+
+SELECT COUNT(*) AS total_applications FROM applications;
+
+SELECT COUNT(*) AS total_interview_slots FROM interview_slots;
+
+SELECT COUNT(*) AS total_scheduled_interviews FROM interview_schedules;
+
+SELECT COUNT(*) AS total_offers FROM offers;
+
+
+6. Student Details Queries
+--------------------------
+
+SELECT
+    s.student_id,
+    s.roll_no,
+    s.full_name,
+    s.email,
+    s.phone_number,
+    d.code AS department_code,
+    d.name AS department_name,
+    s.cgpa,
+    s.backlogs,
+    s.graduation_year,
+    s.placement_status
+FROM students s
+JOIN departments d ON d.department_id = s.department_id
+ORDER BY s.roll_no
+LIMIT 50;
+
+SELECT *
+FROM v_student_profiles
+ORDER BY roll_no
+LIMIT 50;
+
+SELECT *
+FROM v_student_profiles
+WHERE roll_no = 'CSE0001';
+
+SELECT *
+FROM v_student_profiles
+WHERE full_name ILIKE '%banerjee%'
+ORDER BY roll_no;
+
+SELECT *
+FROM v_student_profiles
+WHERE department_code = 'CSE'
+ORDER BY cgpa DESC
+LIMIT 50;
+
+SELECT *
+FROM v_student_profiles
+WHERE cgpa >= 9.0
+ORDER BY cgpa DESC, roll_no;
+
+SELECT *
+FROM v_student_profiles
+WHERE backlogs = 0
+ORDER BY cgpa DESC
+LIMIT 50;
+
+SELECT roll_no, full_name, email, phone_number
+FROM students
+ORDER BY student_id
+LIMIT 20;
+
+
+7. Student Skills Queries
+-------------------------
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    sk.name AS skill,
+    ss.proficiency
+FROM student_skills ss
+JOIN students s ON s.student_id = ss.student_id
+JOIN skills sk ON sk.skill_id = ss.skill_id
+ORDER BY s.roll_no, sk.name
+LIMIT 100;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    string_agg(sk.name || ' (' || ss.proficiency || ')', ', ' ORDER BY sk.name) AS skills
+FROM student_skills ss
+JOIN students s ON s.student_id = ss.student_id
+JOIN skills sk ON sk.skill_id = ss.skill_id
+GROUP BY s.roll_no, s.full_name
+ORDER BY s.roll_no
+LIMIT 50;
+
+SELECT
+    sk.name AS skill,
+    COUNT(*) AS student_count
+FROM student_skills ss
+JOIN skills sk ON sk.skill_id = ss.skill_id
+GROUP BY sk.name
+ORDER BY student_count DESC;
+
+
+8. Semester And Subject Marks Queries
+-------------------------------------
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    sub.semester_no,
+    sub.subject_code,
+    sub.subject_name,
+    sub.credits,
+    m.internal_marks,
+    m.external_marks,
+    m.total_marks,
+    m.grade,
+    m.exam_status
+FROM student_semester_marks m
+JOIN students s ON s.student_id = m.student_id
+JOIN subjects sub ON sub.subject_id = m.subject_id
+WHERE s.roll_no = 'CSE0001'
+ORDER BY sub.semester_no, sub.subject_code;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    sub.semester_no,
+    ROUND(AVG(m.total_marks), 2) AS average_marks
+FROM student_semester_marks m
+JOIN students s ON s.student_id = m.student_id
+JOIN subjects sub ON sub.subject_id = m.subject_id
+GROUP BY s.roll_no, s.full_name, sub.semester_no
+ORDER BY s.roll_no, sub.semester_no
+LIMIT 80;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    sub.semester_no,
+    ROUND(
+        SUM(
+            CASE m.grade
+                WHEN 'O' THEN 10
+                WHEN 'A+' THEN 9
+                WHEN 'A' THEN 8
+                WHEN 'B+' THEN 7
+                WHEN 'B' THEN 6
+                WHEN 'C' THEN 5
+                WHEN 'P' THEN 4
+                ELSE 0
+            END * sub.credits
+        )::numeric / NULLIF(SUM(sub.credits), 0),
+        2
+    ) AS sgpa
+FROM student_semester_marks m
+JOIN students s ON s.student_id = m.student_id
+JOIN subjects sub ON sub.subject_id = m.subject_id
+WHERE s.roll_no = 'CSE0001'
+GROUP BY s.roll_no, s.full_name, sub.semester_no
+ORDER BY sub.semester_no;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    COUNT(*) AS backlog_subjects
+FROM student_semester_marks m
+JOIN students s ON s.student_id = m.student_id
+WHERE m.exam_status = 'BACKLOG'
+GROUP BY s.roll_no, s.full_name
+ORDER BY backlog_subjects DESC, s.roll_no
+LIMIT 50;
+
+SELECT
+    sub.semester_no,
+    sub.subject_code,
+    sub.subject_name,
+    ROUND(AVG(m.total_marks), 2) AS class_average
+FROM student_semester_marks m
+JOIN subjects sub ON sub.subject_id = m.subject_id
+GROUP BY sub.semester_no, sub.subject_code, sub.subject_name
+ORDER BY sub.semester_no, sub.subject_code;
+
+
+9. Company Queries
+------------------
+
+SELECT *
+FROM companies
+ORDER BY package_lpa DESC;
+
+SELECT
+    c.name AS company,
+    c.package_lpa,
+    c.openings,
+    c.min_cgpa,
+    c.max_backlogs,
+    string_agg(DISTINCT d.code, ', ' ORDER BY d.code) AS allowed_departments
+FROM companies c
+JOIN company_departments cd ON cd.company_id = c.company_id
+JOIN departments d ON d.department_id = cd.department_id
+GROUP BY c.company_id, c.name, c.package_lpa, c.openings, c.min_cgpa, c.max_backlogs
+ORDER BY c.package_lpa DESC;
+
+SELECT
+    c.name AS company,
+    sk.name AS required_skill,
+    crs.min_proficiency,
+    crs.weight
+FROM company_required_skills crs
+JOIN companies c ON c.company_id = crs.company_id
+JOIN skills sk ON sk.skill_id = crs.skill_id
+ORDER BY c.name, crs.weight DESC;
+
+SELECT *
+FROM v_company_dashboard
+ORDER BY package_lpa DESC;
+
+
+10. Eligibility Filtering Queries
+---------------------------------
+
+SELECT *
+FROM v_eligible_students
+ORDER BY company_name, match_score DESC
+LIMIT 100;
+
+SELECT *
+FROM v_eligible_students
+WHERE company_name = 'Microsoft'
+ORDER BY match_score DESC
+LIMIT 50;
+
+SELECT *
+FROM v_eligible_students
+WHERE company_name = 'TCS'
+ORDER BY match_score DESC
+LIMIT 50;
+
+SELECT
+    company_name,
+    COUNT(*) AS eligible_students
+FROM v_eligible_students
+GROUP BY company_name
+ORDER BY eligible_students DESC;
+
+SELECT
+    department_code,
+    COUNT(*) AS eligible_count
+FROM v_eligible_students
+WHERE company_name = 'Microsoft'
+GROUP BY department_code
+ORDER BY eligible_count DESC;
+
+SELECT
+    company_name,
+    roll_no,
+    full_name,
+    department_code,
+    cgpa,
+    backlogs,
+    match_score
+FROM v_eligible_students
+WHERE cgpa >= 9.0
+ORDER BY match_score DESC
+LIMIT 100;
+
+
+11. Application Queries
+-----------------------
+
+SELECT *
+FROM applications
+ORDER BY applied_at DESC
+LIMIT 50;
+
+SELECT
+    c.name AS company,
+    a.status,
+    COUNT(*) AS total
+FROM applications a
+JOIN companies c ON c.company_id = a.company_id
+GROUP BY c.name, a.status
+ORDER BY c.name, a.status;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    c.name AS company,
+    a.status,
+    a.applied_at
+FROM applications a
+JOIN students s ON s.student_id = a.student_id
+JOIN companies c ON c.company_id = a.company_id
+WHERE s.roll_no = 'CSE0001'
+ORDER BY a.applied_at;
+
+
+12. Interview Slot Queries
+--------------------------
+
+SELECT
+    sl.slot_id,
+    c.name AS company,
+    sl.round_no,
+    lower(sl.slot_range) AS starts_at,
+    upper(sl.slot_range) AS ends_at,
+    sl.capacity,
+    sl.booked_count,
+    sl.venue
+FROM interview_slots sl
+JOIN companies c ON c.company_id = sl.company_id
+ORDER BY starts_at, company;
+
+SELECT
+    c.name AS company,
+    COUNT(*) AS total_slots,
+    SUM(sl.capacity) AS total_capacity,
+    SUM(sl.booked_count) AS booked
+FROM interview_slots sl
+JOIN companies c ON c.company_id = sl.company_id
+GROUP BY c.name
+ORDER BY c.name;
+
+SELECT *
+FROM interview_slots
+WHERE booked_count < capacity
+ORDER BY lower(slot_range);
+
+
+13. Interview Schedule Queries
+------------------------------
+
+SELECT *
+FROM v_student_schedule
+ORDER BY starts_at, roll_no
+LIMIT 100;
+
+SELECT *
+FROM v_student_schedule
+WHERE roll_no = 'CSE0001'
+ORDER BY starts_at;
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    c.name AS company,
+    lower(sl.slot_range) AS starts_at,
+    upper(sl.slot_range) AS ends_at,
+    sl.venue,
+    sch.status
+FROM interview_schedules sch
+JOIN students s ON s.student_id = sch.student_id
+JOIN companies c ON c.company_id = sch.company_id
+JOIN interview_slots sl ON sl.slot_id = sch.slot_id
+ORDER BY starts_at, s.roll_no
+LIMIT 100;
+
+SELECT
+    c.name AS company,
+    COUNT(*) AS scheduled_interviews
+FROM interview_schedules sch
+JOIN companies c ON c.company_id = sch.company_id
+GROUP BY c.name
+ORDER BY scheduled_interviews DESC;
+
+
+14. Bipartite Matching / Matching Candidate Queries
+---------------------------------------------------
+
+-- Meaning:
+-- Each row is a possible edge between one eligible student and one available interview slot.
+-- This is useful for maximum bipartite matching algorithms.
+
+SELECT *
+FROM v_matching_edges
+ORDER BY match_score DESC
+LIMIT 100;
+
+SELECT
+    e.student_id,
+    s.roll_no,
+    s.full_name,
+    c.name AS company,
+    e.slot_id,
+    lower(sl.slot_range) AS starts_at,
+    upper(sl.slot_range) AS ends_at,
+    e.match_score
+FROM v_matching_edges e
+JOIN students s ON s.student_id = e.student_id
+JOIN companies c ON c.company_id = e.company_id
+JOIN interview_slots sl ON sl.slot_id = e.slot_id
+ORDER BY e.match_score DESC, c.name, s.roll_no
+LIMIT 100;
+
+SELECT
+    company_id,
+    COUNT(*) AS possible_edges
+FROM v_matching_edges
+GROUP BY company_id
+ORDER BY possible_edges DESC;
+
+
+15. Greedy Scheduling Queries
+-----------------------------
+
+-- Run greedy scheduling for a company by company_id:
+
+SELECT schedule_company_greedy(1);
+
+-- Run greedy scheduling for Microsoft:
+
+SELECT schedule_company_greedy(
+    (SELECT company_id FROM companies WHERE name = 'Microsoft')
+);
+
+-- Run greedy scheduling for TCS:
+
+SELECT schedule_company_greedy(
+    (SELECT company_id FROM companies WHERE name = 'TCS')
+);
+
+
+16. Transactional Interview Booking Queries
+-------------------------------------------
+
+-- Book one interview safely using the PL/pgSQL function:
+
+SELECT book_interview(1, 1, 1);
+
+-- Example using selected IDs:
+
+SELECT book_interview(
+    (SELECT student_id FROM students WHERE roll_no = 'CSE0001'),
+    (SELECT company_id FROM companies WHERE name = 'TCS'),
+    (SELECT slot_id FROM interview_slots WHERE company_id = (SELECT company_id FROM companies WHERE name = 'TCS') LIMIT 1)
+);
+
+-- Manual transaction style:
+
+BEGIN;
+
+SELECT *
+FROM interview_slots
+WHERE slot_id = 1
+FOR UPDATE;
+
+SELECT *
+FROM students
+WHERE student_id = 1
+FOR UPDATE;
+
+COMMIT;
+
+-- Rollback if needed:
+
+ROLLBACK;
+
+
+17. Interval Scheduling / Overlap Detection Queries
+---------------------------------------------------
+
+-- Check whether a student has overlapping interviews:
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    sl1.slot_id AS slot_1,
+    sl2.slot_id AS slot_2,
+    sl1.slot_range AS range_1,
+    sl2.slot_range AS range_2
+FROM interview_schedules sch1
+JOIN interview_schedules sch2
+    ON sch1.student_id = sch2.student_id
+   AND sch1.schedule_id < sch2.schedule_id
+JOIN students s ON s.student_id = sch1.student_id
+JOIN interview_slots sl1 ON sl1.slot_id = sch1.slot_id
+JOIN interview_slots sl2 ON sl2.slot_id = sch2.slot_id
+WHERE sl1.slot_range && sl2.slot_range;
+
+-- Find available slots for a company:
+
+SELECT
+    sl.slot_id,
+    c.name AS company,
+    lower(sl.slot_range) AS starts_at,
+    upper(sl.slot_range) AS ends_at,
+    sl.capacity,
+    sl.booked_count
+FROM interview_slots sl
+JOIN companies c ON c.company_id = sl.company_id
+WHERE c.name = 'Microsoft'
+  AND sl.booked_count < sl.capacity
+ORDER BY starts_at;
+
+
+18. Trigger Testing Queries
+---------------------------
+
+-- This should fail if the student is not eligible for the company:
+
+INSERT INTO applications(student_id, company_id)
+VALUES (1, 1);
+
+-- This should fail if the same student already has an overlapping interview:
+
+INSERT INTO interview_schedules(application_id, student_id, company_id, slot_id)
+VALUES (1, 1, 1, 1);
+
+
+19. Offer Queries
+-----------------
+
+INSERT INTO offers(student_id, company_id, offered_lpa, status)
+VALUES (
+    (SELECT student_id FROM students WHERE roll_no = 'CSE0001'),
+    (SELECT company_id FROM companies WHERE name = 'TCS'),
+    3.60,
+    'PENDING'
+);
+
+SELECT
+    s.roll_no,
+    s.full_name,
+    c.name AS company,
+    o.offered_lpa,
+    o.status,
+    o.offered_at
+FROM offers o
+JOIN students s ON s.student_id = o.student_id
+JOIN companies c ON c.company_id = o.company_id
+ORDER BY o.offered_at DESC;
+
+UPDATE offers
+SET status = 'ACCEPTED'
+WHERE offer_id = 1;
+
+SELECT roll_no, full_name, placement_status
+FROM students
+WHERE roll_no = 'CSE0001';
+
+
+20. Analytics Queries
+---------------------
+
+SELECT
+    d.code AS department,
+    COUNT(*) AS total_students,
+    ROUND(AVG(s.cgpa), 2) AS average_cgpa
+FROM students s
+JOIN departments d ON d.department_id = s.department_id
+GROUP BY d.code
+ORDER BY total_students DESC;
+
+SELECT
+    d.code AS department,
+    COUNT(*) FILTER (WHERE s.backlogs = 0) AS no_backlog_students,
+    COUNT(*) FILTER (WHERE s.backlogs > 0) AS students_with_backlogs
+FROM students s
+JOIN departments d ON d.department_id = s.department_id
+GROUP BY d.code
+ORDER BY d.code;
+
+SELECT
+    placement_status,
+    COUNT(*) AS total
+FROM students
+GROUP BY placement_status;
+
+SELECT
+    c.name AS company,
+    c.package_lpa,
+    COUNT(DISTINCT a.student_id) AS applicants,
+    COUNT(DISTINCT sch.student_id) AS scheduled_students
+FROM companies c
+LEFT JOIN applications a ON a.company_id = c.company_id
+LEFT JOIN interview_schedules sch ON sch.company_id = c.company_id
+GROUP BY c.name, c.package_lpa
+ORDER BY c.package_lpa DESC;
+
+SELECT
+    company_name,
+    ROUND(AVG(match_score), 2) AS average_match_score,
+    MAX(match_score) AS best_match_score,
+    MIN(match_score) AS lowest_match_score
+FROM v_eligible_students
+GROUP BY company_name
+ORDER BY average_match_score DESC;
+
+
+21. Update Queries
+------------------
+
+UPDATE students
+SET cgpa = 9.20
+WHERE roll_no = 'CSE0001';
+
+UPDATE students
+SET phone_number = '+91 98765 43210'
+WHERE roll_no = 'CSE0001';
+
+UPDATE companies
+SET min_cgpa = 7.00
+WHERE name = 'TCS';
+
+UPDATE applications
+SET status = 'SHORTLISTED'
+WHERE application_id = 1;
+
+UPDATE interview_schedules
+SET status = 'COMPLETED'
+WHERE schedule_id = 1;
+
+
+22. Delete Queries
+------------------
+
+DELETE FROM applications
+WHERE application_id = 1;
+
+DELETE FROM offers
+WHERE offer_id = 1;
+
+DELETE FROM interview_schedules
+WHERE schedule_id = 1;
+
+-- Be careful with these:
+
+DELETE FROM students
+WHERE roll_no = 'CSE0001';
+
+DELETE FROM companies
+WHERE name = 'TCS';
+
+
+23. Index And Performance Queries
+---------------------------------
+
+EXPLAIN ANALYZE
+SELECT *
+FROM v_eligible_students
+WHERE company_name = 'Microsoft'
+ORDER BY match_score DESC;
+
+EXPLAIN ANALYZE
+SELECT *
+FROM interview_slots
+WHERE slot_range && tstzrange('2026-08-01 09:00+05:30', '2026-08-01 10:00+05:30', '[)');
+
+SELECT
+    indexname,
+    indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+ORDER BY tablename, indexname;
+
+
+24. Deadlock And Lock Inspection Queries
+----------------------------------------
+
+SELECT
+    pid,
+    state,
+    wait_event_type,
+    wait_event,
+    query
+FROM pg_stat_activity
+WHERE datname = 'campus_placement';
+
+SELECT
+    locktype,
+    relation::regclass,
+    mode,
+    granted
+FROM pg_locks
+WHERE database = (
+    SELECT oid
+    FROM pg_database
+    WHERE datname = 'campus_placement'
+);
+
+
+25. Reset / Reload Queries
+--------------------------
+
+-- From psql:
+
+\i sql/01_schema.sql
+\i sql/02_seed.sql
+
+-- From CMD:
+
+psql -h localhost -p 5433 -U postgres -d campus_placement -f sql\01_schema.sql
+psql -h localhost -p 5433 -U postgres -d campus_placement -f sql\02_seed.sql
+
+
+26. Flask API Related Queries
+-----------------------------
+
+-- Data used by /api/summary:
+
+SELECT COUNT(*) AS total FROM students;
+SELECT COUNT(*) AS total FROM companies;
+SELECT COUNT(*) AS total FROM applications;
+SELECT COUNT(*) AS total FROM interview_schedules;
+
+-- Data used by /api/students:
+
+SELECT
+    student_id,
+    roll_no,
+    full_name,
+    email,
+    phone_number,
+    department_code,
+    department_name,
+    cgpa,
+    backlogs,
+    graduation_year,
+    placement_status,
+    skills,
+    application_count,
+    interview_count,
+    academic_average_sgpa
+FROM v_student_profiles
+ORDER BY roll_no
+LIMIT 500;
+
+-- Data used by /api/dashboard:
+
+SELECT *
+FROM v_company_dashboard
+ORDER BY package_lpa DESC, name;
+
+-- Data used by /api/schedule:
+
+SELECT *
+FROM v_student_schedule
+ORDER BY starts_at, company_name, roll_no;
+
+-- Data used by /api/matching-edges:
+
+SELECT
+    e.student_id,
+    s.roll_no,
+    s.full_name,
+    e.company_id,
+    c.name AS company_name,
+    e.slot_id,
+    lower(sl.slot_range) AS starts_at,
+    upper(sl.slot_range) AS ends_at,
+    e.match_score
+FROM v_matching_edges e
+JOIN students s ON s.student_id = e.student_id
+JOIN companies c ON c.company_id = e.company_id
+JOIN interview_slots sl ON sl.slot_id = e.slot_id
+ORDER BY e.match_score DESC, c.name, s.roll_no
+LIMIT 120;
+
